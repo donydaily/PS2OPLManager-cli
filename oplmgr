@@ -7,7 +7,7 @@ from usb import detect_ps2_usb
 from iso import get_game_info
 from splitter import split_iso
 from ulcfg import add_entry, list_games
-from meta import rename_game
+from utils import rename_game
 from ui import ui_main
 
 def main():
