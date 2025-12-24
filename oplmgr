@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+import sys
+sys.path.insert(0, "/usr/lib/oplmgr")
+import argparse
+from pathlib import Path
+from usb import detect_ps2_usb
+from iso import get_game_info
+from splitter import split_iso
+from ulcfg import add_entry, list_games
+from meta import rename_game
+from ui import ui_main
+
+def main():
+    p = argparse.ArgumentParser("oplmgr")
+    sub = p.add_subparsers(dest="cmd")
+
+    add = sub.add_parser("add")
+    add.add_argument("iso")
+
+    lst = sub.add_parser("list")
+
+    ren = sub.add_parser("rename")
+    ren.add_argument("game_id")
+    ren.add_argument("title")
+
+    ui = sub.add_parser("ui")
+
+    args = p.parse_args()
+    usb = detect_ps2_usb()
+
+    if not usb:
+        print("❌ PS2 USB not detected")
+        return
+
+    if args.cmd == "add":
+        iso = Path(args.iso)
+        gid, media = get_game_info(iso)
+        target = usb / media
+        prefix = f"ul.{gid}"
+        split_iso(iso, target, prefix)
+        add_entry(usb, gid, iso.stem, media)
+        print(f"✔ Added {gid}")
+
+    elif args.cmd == "list":
+        list_games(usb)
+
+    elif args.cmd == "rename":
+        rename_game(usb, args.game_id, args.title)
+        print("✔ Renamed")
+
+    elif args.cmd == "ui":
+        ui_main(usb)
+
+    else:
+        p.print_help()
+
+if __name__ == "__main__":
+    main()
